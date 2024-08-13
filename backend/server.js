@@ -37,7 +37,8 @@ app.use(cors());
 app.post('/query', async (req, res) => {
     const userQuery = req.body.query;
     try {
-        const sqlQuery = await convertToSQL(userQuery);
+        const schema = await getSchema();
+        const sqlQuery = await convertToSQL(userQuery, schema);
         console.log('Generated SQL Query:', sqlQuery);  // Log generated SQL query
 
         if (sqlQuery && isValidSQL(sqlQuery)) {
@@ -58,11 +59,46 @@ app.post('/query', async (req, res) => {
     }
 });
 
+// Function to get database schema
+async function getSchema() {
+    return new Promise((resolve, reject) => {
+        db.query('SHOW TABLES', (error, tables) => {
+            if (error) {
+                return reject(error);
+            }
+
+            let schema = '';
+            let tableCount = tables.length;
+            if (tableCount === 0) {
+                resolve('');
+            }
+
+            tables.forEach((table, index) => {
+                const tableName = table[`Tables_in_${db.config.database}`];
+                db.query(`SHOW COLUMNS FROM ${tableName}`, (err, columns) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    schema += `Table ${tableName}:\n`;
+                    columns.forEach(column => {
+                        schema += `- ${column.Field} (${column.Type})\n`;
+                    });
+
+                    if (index === tableCount - 1) {
+                        resolve(schema);
+                    }
+                });
+            });
+        });
+    });
+}
+
 // Function to convert natural language to SQL using Gemini API
-async function convertToSQL(userQuery) {
+async function convertToSQL(userQuery, schema) {
     try {
         // Generate content using the model
-        const result = await model.generateContent(userQuery);
+        const result = await model.generateContent(`${userQuery}\n\nDatabase Schema:\n${schema}`);
         const response = await result.response;
         let sqlQuery = await response.text();
 

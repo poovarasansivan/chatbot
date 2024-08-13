@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 const Home = () => {
   const [data, setData] = useState([]);
   const [textInput, setTextInput] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    // Fetch data from the backend (initially empty, so no need for an endpoint here)
-    // Set up only when there is a response with data
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +24,9 @@ const Home = () => {
       setData([]);
     }
   };
+
+  // Extract headers from the first item if available
+  const headers = data.length > 0 ? Object.keys(data[0]) : [];
 
   return (
     <div className="container mx-auto p-4">
@@ -54,28 +52,32 @@ const Home = () => {
 
       <div className="overflow-x-auto">
         {error && <p className="text-red-500">{error}</p>}
-        <table className="min-w-full bg-white border text-black border-gray-200">
-          <thead>
-            <tr className="bg-black text-white">
-              <th className="p-4 border-b text-black">ID</th>
-              <th className="p-4 border-b text-black">Name</th>
-              <th className="p-4 border-b text-black">Salary</th>
-              <th className="p-4 border-b text-black">Position</th>
-              <th className="p-4 border-b text-black">Department</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map(item => (
-              <tr key={item.id}>
-                <td className="p-4 border-b">{item.id}</td>
-                <td className="p-4 border-b">{item.name}</td>
-                <td className="p-4 border-b">{item.salary}</td>
-                <td className="p-4 border-b">{item.position}</td>
-                <td className="p-4 border-b">{item.department}</td>
+        {data.length > 0 ? (
+          <table className="min-w-full bg-white border text-black border-gray-200">
+            <thead>
+              <tr className="bg-black text-white">
+                {headers.map(header => (
+                  <th key={header} className="p-4 border-b text-black">
+                    {header.replace(/([A-Z])/g, ' $1').toUpperCase()}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((item, index) => (
+                <tr key={index}>
+                  {headers.map(header => (
+                    <td key={header} className="p-4 border-b">
+                      {item[header]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className='text-center text-red-600 text-lg'>No data available.</p>
+        )}
       </div>
     </div>
   );

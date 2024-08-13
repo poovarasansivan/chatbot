@@ -1,19 +1,24 @@
-// src/components/Navbar.js
+// src/App.js
 import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Profile from './components/Profile';
+import Settings from './components/Settings';
 
-const Navbar = () => {
+const App = () => {
   return (
-    <nav className="bg-gray-800 p-4 text-white">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold">Dashboard</h1>
-        <ul className="flex space-x-4">
-          <li><a href="#" className="hover:underline">Home</a></li>
-          <li><a href="#" className="hover:underline">Profile</a></li>
-          <li><a href="#" className="hover:underline">Settings</a></li>
-        </ul>
-      </div>
-    </nav>
+    <Router>
+      <Navbar />
+      <main className="container mx-auto p-4">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </main>
+    </Router>
   );
 }
 
-export default Navbar;
+export default App;
